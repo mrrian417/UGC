@@ -888,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- UPDATE INFO BUTTON LOGIC ---
     (function() {
-        const UPDATE_VERSION = '37';
+        const UPDATE_VERSION = '38';
         const STORAGE_KEY = 'affiliatego_update_seen';
         const btn = document.getElementById('update-info-btn');
         if (!btn) return;
@@ -896,6 +896,37 @@ document.addEventListener('DOMContentLoaded', () => {
         // Releases history — newest first. Max 3 displayed in modal.
         // Saat user bilang "rilis" untuk versi baru: prepend entry baru di sini, geser yang lain ke bawah, drop entry ke-4.
         const RELEASES = [
+            {
+                version: '38',
+                dateId: 'Juni 2026',
+                dateEn: 'June 2026',
+                badgeKey: 'modal.fix-v38-badge',
+                badgeText: 'Update v38',
+                gradient: 'linear-gradient(135deg,#7c3aed,#db2777)',
+                borderColor: '#7c3aed',
+                icon: 'fa-bolt',
+                iconColor: '#7c3aed',
+                items: [
+                    {
+                        titleKey: 'modal.fix-v38-title-podcast',
+                        titleText: 'Fitur Baru: Studio Podcast',
+                        bodyKey: 'modal.fix-v38-body-podcast',
+                        bodyText: 'Tab baru untuk bikin foto seolah sedang siaran podcast. Upload 1 foto karakter, pilih dari 5 tema suasana (Studio Profesional, Cozy Home, Neon/Gaming, Dark Moody Cinematic, atau Custom), dan AI akan mendudukkanmu di depan mic podcast. Tiap hasil otomatis dapat angle kamera berbeda. Rasio & jumlah generate bisa diatur.'
+                    },
+                    {
+                        titleKey: 'modal.fix-v38-title-worldcup',
+                        titleText: 'Fitur Baru: Foto World Cup',
+                        bodyKey: 'modal.fix-v38-body-worldcup',
+                        bodyText: 'Tab baru bertema Piala Dunia. Upload 1-5 foto wajah + ketik negara (AI otomatis pakai warna jersey & bendera negara itu), lalu pilih dari 11 tema: Suporter di Stadion, Jadi Pemain di Lapangan, Angkat Trophy, Jersey Portrait, Selebrasi Gol, Nobar Fan Zone, Player Tunnel, Foto Tim Resmi, Press Conference, Kartu Pemain, atau Custom. Tiap hasil otomatis dapat angle berbeda.'
+                    },
+                    {
+                        titleKey: 'modal.fix-v38-title-tryon',
+                        titleText: 'Virtual Try-On: Selektor Rasio (perbaikan konsistensi)',
+                        bodyKey: 'modal.fix-v38-body-tryon',
+                        bodyText: 'Tab Virtual Try-On sekarang punya selektor Rasio (3:4, 1:1, 4:5, 9:16, 16:9, 2:3). Sebelumnya rasio terkunci 3:4 dan sering tidak konsisten — sekarang rasio yang kamu pilih dikirim ke AI dan tampilan hasil mengikuti rasio itu, jadi yang dilihat sama dengan yang didownload.'
+                    }
+                ]
+            },
             {
                 version: '37',
                 dateId: 'Mei 2026',
@@ -2750,7 +2781,14 @@ Output ONLY the video prompt, nothing else.`;
         let tryonModelData = null;
         let selectedAngle = 'Front View';
         let selectedCount = 4; // 1-10, default 4 (count selector)
+        let selectedTryonRatio = '3:4'; // ratio selector, default 3:4
         let generatedImages = [];
+
+        // Map rasio terpilih -> Tailwind aspect class (untuk bingkai kartu konsisten)
+        function tryonAspectClass() {
+            const map = { '1:1': 'aspect-square', '3:4': 'aspect-[3/4]', '4:5': 'aspect-[4/5]', '9:16': 'aspect-[9/16]', '16:9': 'aspect-video', '2:3': 'aspect-[2/3]' };
+            return map[selectedTryonRatio] || 'aspect-[3/4]';
+        }
 
         // Count selection (1-10), default 4
         const tryonCountSel = document.getElementById('tryon-count-selection-grid');
@@ -2761,6 +2799,18 @@ Output ONLY the video prompt, nothing else.`;
                 tryonCountSel.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedCount = parseInt(btn.dataset.count, 10);
+            });
+        }
+
+        // Ratio selection, default 3:4
+        const tryonRatioSel = document.getElementById('tryon-ratio-selection');
+        if (tryonRatioSel) {
+            tryonRatioSel.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-ratio]');
+                if (!btn) return;
+                tryonRatioSel.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedTryonRatio = btn.dataset.ratio;
             });
         }
 
@@ -2899,7 +2949,7 @@ Output ONLY the video prompt, nothing else.`;
                     for (let i = 1; i <= selectedCount; i++) {
                         const card = document.createElement('div');
                         card.id = `tryon-card-${i}`;
-                        card.className = 'relative group rounded-xl overflow-hidden shadow-lg bg-gray-100 aspect-[3/4] animate-pulse flex items-center justify-center';
+                        card.className = `relative group rounded-xl overflow-hidden shadow-lg bg-gray-100 ${tryonAspectClass()} animate-pulse flex items-center justify-center`;
                         card.innerHTML = `<div class="text-center text-gray-400 p-4"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p class="text-xs mt-1">${i}</p></div>`;
                         tryonResultsGrid.appendChild(card);
                     }
@@ -2956,7 +3006,7 @@ CRITICAL: The model must be clearly wearing/using the product in the specified a
                         { inlineData: { mimeType: tryonProductData.mimeType, data: tryonProductData.base64 } },
                         { inlineData: { mimeType: tryonModelData.mimeType, data: tryonModelData.base64 } }
                     ]}],
-                    generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '3:4' } }
+                    generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: selectedTryonRatio } }
                 };
 
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -2970,7 +3020,7 @@ CRITICAL: The model must be clearly wearing/using the product in the specified a
 
                 if (card) {
                     card.className = 'relative group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-white';
-                    card.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover aspect-[3/4]" alt="Try-On ${index}"><div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 gap-2"><button data-action="preview" data-index="${index - 1}" class="action-btn bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-eye"></i><span class="hidden sm:inline">Preview</span></button><button data-action="download" data-index="${index - 1}" class="action-btn bg-gradient-to-r from-teal-500 to-lime-500 text-white px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-download"></i><span class="hidden sm:inline">Download</span></button></div>`;
+                    card.innerHTML = `<img src="${imageUrl}" class="w-full object-contain ${tryonAspectClass()}" alt="Try-On ${index}"><div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 gap-2"><button data-action="preview" data-index="${index - 1}" class="action-btn bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-eye"></i><span class="hidden sm:inline">Preview</span></button><button data-action="download" data-index="${index - 1}" class="action-btn bg-gradient-to-r from-teal-500 to-lime-500 text-white px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-download"></i><span class="hidden sm:inline">Download</span></button></div>`;
                 }
             } catch (error) {
                 console.error(`Error generating try-on ${index}:`, error);
@@ -2986,13 +3036,16 @@ CRITICAL: The model must be clearly wearing/using the product in the specified a
                 successful.forEach((img, idx) => {
                     const card = document.createElement('div');
                     card.className = 'relative group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-white';
-                    card.innerHTML = `<img src="${img.url}" class="w-full h-full object-cover aspect-[3/4]" alt="Try-On ${idx + 1}"><div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 gap-2"><button data-action="preview" data-index="${idx}" class="action-btn bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-eye"></i><span class="hidden sm:inline">Preview</span></button><button data-action="download" data-index="${idx}" class="action-btn bg-gradient-to-r from-teal-500 to-lime-500 text-white px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-download"></i><span class="hidden sm:inline">Download</span></button></div>`;
+                    card.innerHTML = `<img src="${img.url}" class="w-full object-contain ${tryonAspectClass()}" alt="Try-On ${idx + 1}"><div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 gap-2"><button data-action="preview" data-index="${idx}" class="action-btn bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-eye"></i><span class="hidden sm:inline">Preview</span></button><button data-action="download" data-index="${idx}" class="action-btn bg-gradient-to-r from-teal-500 to-lime-500 text-white px-4 py-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"><i class="fas fa-download"></i><span class="hidden sm:inline">Download</span></button></div>`;
                     tryonResultsGrid.appendChild(card);
                 });
             }
             if (tryonResultsHeader) tryonResultsHeader.classList.remove('hidden');
             if (tryonResultsCount) tryonResultsCount.textContent = successful.length;
-            if (tryonResultsGrid) tryonResultsGrid.classList.remove('hidden');
+            if (tryonResultsGrid) {
+                tryonResultsGrid.classList.remove('hidden');
+                tryonResultsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Event delegation for action buttons (mobile friendly)
@@ -16747,6 +16800,811 @@ Style: ultra-realistic candid stadium photography, smartphone snapshot quality, 
         }
 
         checkWTReadyToGenerate();
+    })();
+
+    // ==================== STUDIO PODCAST ====================
+    (function podcastTab() {
+        const apiKey = "";
+
+        // State
+        let podSelectedTheme = 'studio-pro';
+        let podSelectedRatio = '16:9';
+        let podSelectedCount = 4;
+        let podPhotoImage = null; // { mimeType, base64 }
+        let podGeneratedImages = [];
+
+        const POD_NEGATIVE_PROMPT = `STRICT RULES:
+- Preserve the EXACT facial identity, hairstyle, and skin tone of the person from the reference photo (no morphing, no chibi-fication, no age/ethnicity change).
+- The person is seated naturally at a podcast desk, mid-conversation, with relaxed authentic posture (talking, gesturing, or listening). NOT a stiff studio pose.
+- Hands look natural — no extra fingers, no deformed hands.
+- Any visible text (signage, LED panel, neon sign, caption) MUST be in Indonesian or English ONLY.
+- No watermark, no distortion, no blur on the face.`;
+
+        // Always-on podcast equipment anchor
+        const POD_MIC_ANCHOR = `A professional condenser podcast microphone on an adjustable boom arm with a pop filter is positioned in front of the seated person. Studio headphones are present (worn on the head, around the neck, or resting on the desk).`;
+
+        // One reference image: the character/person
+        const POD_IMG_ANCHOR = `IMPORTANT — One reference image: the person/character. Preserve their EXACT facial identity, hairstyle, skin tone, and overall appearance from the reference photo. Seat this exact person in the scene as the podcast host.`;
+
+        // Auto-varied camera angle pool — cycled per result card so each generate
+        // returns a different angle (deterministic even distribution, no duplicates).
+        const POD_ANGLE_POOL = [
+            'Camera: Medium shot — waist-up framing, the person and the microphone clearly in frame, eye-level.',
+            'Camera: Wide establishing shot — the full podcast set visible, the person seated at the desk with environment context.',
+            'Camera: Close-up — tight on the face and microphone, intimate expression-focused framing.',
+            'Camera: Three-quarter / side profile — the person seen from the side speaking into the mic, dynamic angle.',
+            'Camera: Low angle — camera positioned below eye-level looking up, confident dramatic perspective.',
+            'Camera: Over-the-shoulder shot — from behind the person past their shoulder toward the microphone and the set.',
+            'Camera: High angle — camera slightly above looking down at the desk and the seated person.',
+        ];
+
+        const POD_THEMES = {
+            'studio-pro': (ctx) => `${POD_IMG_ANCHOR}
+
+Ultra-realistic photo of the person recording a podcast at a modern professional podcast studio desk. ${POD_MIC_ANCHOR} Background: acoustic foam / sound-treatment panels on the wall, a tidy desk, soft warm key lighting with subtle accent lights, the polished big-production look of a popular YouTube podcast set.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, professional studio photography, cinematic depth of field, sharp focus on the subject. ${POD_NEGATIVE_PROMPT}`,
+
+            'cozy-home': (ctx) => `${POD_IMG_ANCHOR}
+
+Ultra-realistic photo of the person recording a podcast in a warm cozy home studio. ${POD_MIC_ANCHOR} Background: a wooden desk, a bookshelf, indoor plants, soft warm lamp light and gentle fairy lights, a personal intimate at-home atmosphere.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, cozy lifestyle photography, warm dim lighting, natural and inviting. ${POD_NEGATIVE_PROMPT}`,
+
+            'neon-gaming': (ctx) => `${POD_IMG_ANCHOR}
+
+Ultra-realistic photo of the person recording a podcast in a futuristic neon gaming/tech setup. ${POD_MIC_ANCHOR} Background: RGB LED strips and neon accent lighting in purple, blue and magenta, a dark room with glowing tech, gamer/streamer aesthetic.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, cinematic neon lighting, vibrant glow, sharp focus on the subject. ${POD_NEGATIVE_PROMPT}`,
+
+            'dark-moody': (ctx) => `${POD_IMG_ANCHOR}
+
+Ultra-realistic photo of the person recording a podcast in a dark moody cinematic set. ${POD_MIC_ANCHOR} Background: a deep dark backdrop, a single dramatic spotlight on the person, strong chiaroscuro lighting and deep shadows, a serious storytelling atmosphere.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, dramatic cinematic lighting, deep contrast, sharp focus on the subject. ${POD_NEGATIVE_PROMPT}`,
+
+            'custom': (ctx) => `${POD_IMG_ANCHOR}
+
+Ultra-realistic photo of the person recording a podcast. ${POD_MIC_ANCHOR} Setting and atmosphere: ${ctx.customTheme || 'a tasteful podcast set'}.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, cinematic lighting, sharp focus on the subject. ${POD_NEGATIVE_PROMPT}`,
+        };
+
+        function buildPodcastPrompt(themeId, customTheme, customText) {
+            const builder = POD_THEMES[themeId] || POD_THEMES['studio-pro'];
+            return builder({
+                customLine: customText ? `Additional user direction: ${customText}` : '',
+                customTheme: (customTheme || '').trim(),
+            });
+        }
+
+        // ============================================================================
+        // Handlers
+        // ============================================================================
+        const podGenerateBtn = document.getElementById('pod-generate-btn');
+        const podPhotoInput = document.getElementById('pod-photo-upload');
+        const podPhotoPreview = document.getElementById('pod-photo-preview');
+        const podCustomThemeWrap = document.getElementById('pod-custom-theme-wrap');
+        const podCustomThemeInput = document.getElementById('pod-custom-theme');
+        const podCustomPromptInput = document.getElementById('pod-custom-prompt');
+        const podEmptyState = document.getElementById('pod-empty-state');
+        const podLoadingEl = document.getElementById('pod-loading');
+        const podResultsHeader = document.getElementById('pod-results-header');
+        const podResultsCountEl = document.getElementById('pod-results-count');
+        const podResultsGrid = document.getElementById('pod-results-grid');
+        const podDownloadAllBtn = document.getElementById('pod-download-all-btn');
+        const podPreviewModal = document.getElementById('pod-preview-modal');
+        const podPreviewImage = document.getElementById('pod-preview-image');
+        const podPreviewClose = document.getElementById('pod-preview-close');
+
+        function checkPodReadyToGenerate() {
+            if (!podGenerateBtn) return;
+            podGenerateBtn.disabled = !podPhotoImage;
+        }
+
+        if (podPhotoInput) {
+            podPhotoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const dataUrl = evt.target.result;
+                    const base64 = dataUrl.split(',')[1];
+                    const mimeType = (dataUrl.split(';')[0] || '').split(':')[1];
+                    podPhotoImage = { mimeType, base64 };
+                    if (podPhotoPreview) {
+                        const img = podPhotoPreview.querySelector('img');
+                        if (img) img.src = dataUrl;
+                        podPhotoPreview.classList.remove('hidden');
+                    }
+                    checkPodReadyToGenerate();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Theme selector (Custom reveals free-text setting input)
+        document.querySelectorAll('#pod-themes-grid button[data-pod-theme]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                podSelectedTheme = btn.dataset.podTheme;
+                document.querySelectorAll('#pod-themes-grid button[data-pod-theme]').forEach(b => {
+                    b.classList.toggle('selected', b.dataset.podTheme === podSelectedTheme);
+                });
+                if (podCustomThemeWrap) {
+                    podCustomThemeWrap.classList.toggle('hidden', podSelectedTheme !== 'custom');
+                }
+            });
+        });
+
+        // Ratio selector
+        document.querySelectorAll('#pod-ratio-options button[data-pod-ratio]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                podSelectedRatio = btn.dataset.podRatio;
+                document.querySelectorAll('#pod-ratio-options button[data-pod-ratio]').forEach(b => {
+                    b.classList.toggle('selected', b.dataset.podRatio === podSelectedRatio);
+                });
+            });
+        });
+
+        // Count selector
+        document.querySelectorAll('#pod-count-options button[data-pod-count]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                podSelectedCount = parseInt(btn.dataset.podCount, 10);
+                document.querySelectorAll('#pod-count-options button[data-pod-count]').forEach(b => {
+                    b.classList.toggle('selected', parseInt(b.dataset.podCount, 10) === podSelectedCount);
+                });
+            });
+        });
+
+        // Preview modal handlers
+        function openPodPreview(imageUrl) {
+            if (!podPreviewModal || !podPreviewImage) return;
+            podPreviewImage.src = imageUrl;
+            podPreviewModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closePodPreview() {
+            if (!podPreviewModal) return;
+            podPreviewModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        if (podPreviewClose) podPreviewClose.addEventListener('click', closePodPreview);
+        if (podPreviewModal) {
+            podPreviewModal.addEventListener('click', (e) => {
+                if (e.target === podPreviewModal) closePodPreview();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && podPreviewModal && !podPreviewModal.classList.contains('hidden')) {
+                closePodPreview();
+            }
+        });
+
+        // Results grid click delegation — preview button
+        if (podResultsGrid) {
+            podResultsGrid.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-pod-action="preview"]');
+                if (!btn) return;
+                const idx = parseInt(btn.dataset.podIndex, 10);
+                if (!isNaN(idx) && podGeneratedImages[idx]) {
+                    openPodPreview(podGeneratedImages[idx].url);
+                }
+            });
+        }
+
+        async function generateSinglePodPhoto(index, basePrompt) {
+            const card = document.getElementById(`pod-card-${index}`);
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+                const angleLine = POD_ANGLE_POOL[(index - 1) % POD_ANGLE_POOL.length];
+                const finalPrompt = `${basePrompt}\n\n${angleLine}\n\nVariation ${index}: slightly vary the person's pose, gesture and expression while keeping the exact identity, outfit, and the podcast microphone setup.`;
+
+                const parts = [
+                    { text: finalPrompt },
+                    { inlineData: { mimeType: podPhotoImage.mimeType, data: podPhotoImage.base64 } }
+                ];
+
+                const payload = {
+                    contents: [{ parts }],
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE'],
+                        imageConfig: { aspectRatio: podSelectedRatio }
+                    },
+                    safetySettings: [
+                        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_HATE_SPEECH',        threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',  threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT',  threshold: 'BLOCK_NONE' }
+                    ]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const imageData = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (!imageData) throw new Error('No image data in response');
+
+                const imageUrl = `data:image/jpeg;base64,${imageData}`;
+                const filename = `podcast-${podSelectedTheme}-${index}-${Date.now()}.jpg`;
+
+                podGeneratedImages[index - 1] = { url: imageUrl, filename };
+
+                if (card) {
+                    card.className = 'relative group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300';
+                    card.innerHTML = `<img src="${imageUrl}" class="w-full object-contain cursor-pointer" alt="Podcast ${index}" data-pod-action="preview" data-pod-index="${index - 1}">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition flex items-end justify-center pb-3 gap-2">
+                            <button type="button" data-pod-action="preview" data-pod-index="${index - 1}" class="bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full font-semibold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                                <i class="fas fa-eye"></i><span class="hidden sm:inline" data-i18n="pod.preview">Preview</span>
+                            </button>
+                            <a href="${imageUrl}" download="${filename}" data-action="download" class="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white px-4 py-2 rounded-full font-semibold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                                <i class="fas fa-download"></i><span class="hidden sm:inline" data-i18n="pod.download">Download</span>
+                            </a>
+                        </div>`;
+                }
+            } catch (err) {
+                console.error(`Podcast generate error #${index}:`, err);
+                if (card) card.innerHTML = '';
+            }
+        }
+
+        async function generatePodPhotos() {
+            const lang = (typeof localStorage !== 'undefined' && localStorage.getItem('app_language')) || 'id';
+
+            if (!podPhotoImage) {
+                const msg = (lang === 'en')
+                    ? 'Upload a character photo first to generate.'
+                    : 'Upload foto karakter dulu untuk generate.';
+                if (typeof showError === 'function') { showError(msg); } else { alert(msg); }
+                return;
+            }
+
+            if (podEmptyState) podEmptyState.classList.add('hidden');
+            if (podLoadingEl) podLoadingEl.classList.remove('hidden');
+            if (podResultsHeader) podResultsHeader.classList.add('hidden');
+
+            const customTheme = (podCustomThemeInput?.value || '').trim();
+            const customText = (podCustomPromptInput?.value || '').trim();
+            const basePrompt = buildPodcastPrompt(podSelectedTheme, customTheme, customText);
+
+            let attempts = 0;
+            const MAX_ATTEMPTS = 3;
+            let successCount = 0;
+
+            while (attempts < MAX_ATTEMPTS && successCount === 0) {
+                attempts++;
+                podGeneratedImages = [];
+                if (podResultsGrid) {
+                    podResultsGrid.innerHTML = '';
+                    podResultsGrid.classList.remove('hidden');
+                }
+
+                for (let i = 1; i <= podSelectedCount; i++) {
+                    const card = document.createElement('div');
+                    card.id = `pod-card-${i}`;
+                    card.className = 'relative rounded-xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 flex items-center justify-center aspect-video border-2';
+                    card.style.borderColor = '#a855f7';
+                    card.innerHTML = `<div class="animate-spin rounded-full h-10 w-10 border-b-3 border-t-3" style="border-color: #a855f7;"></div>`;
+                    if (podResultsGrid) podResultsGrid.appendChild(card);
+                }
+
+                const promises = Array.from({ length: podSelectedCount }, (_, i) =>
+                    generateSinglePodPhoto(i + 1, basePrompt)
+                );
+                await Promise.allSettled(promises);
+
+                if (podResultsGrid) {
+                    podResultsGrid.querySelectorAll('[id^="pod-card-"]').forEach(card => {
+                        if (!card.querySelector('img')) card.remove();
+                    });
+                }
+                successCount = podGeneratedImages.filter(Boolean).length;
+            }
+
+            if (podLoadingEl) podLoadingEl.classList.add('hidden');
+            if (successCount === 0) {
+                alert('Akun Google ini sudah mencapai batas, silahkan gunakan akun Google lain');
+            } else {
+                if (podResultsHeader) podResultsHeader.classList.remove('hidden');
+                if (podResultsCountEl) podResultsCountEl.textContent = podGeneratedImages.filter(Boolean).length;
+                if (podDownloadAllBtn) podDownloadAllBtn.classList.remove('hidden');
+                if (podResultsGrid) podResultsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        if (podGenerateBtn) podGenerateBtn.addEventListener('click', async () => {
+            if (podGenerateBtn.disabled) return;
+            podGenerateBtn.disabled = true;
+            try { await generatePodPhotos(); }
+            finally { checkPodReadyToGenerate(); }
+        });
+
+        if (podDownloadAllBtn) {
+            podDownloadAllBtn.addEventListener('click', () => {
+                podGeneratedImages.filter(Boolean).forEach(({ url, filename }, i) => {
+                    setTimeout(() => {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        a.click();
+                    }, i * 200);
+                });
+            });
+        }
+
+        checkPodReadyToGenerate();
+    })();
+
+    // ==================== FOTO WORLD CUP ====================
+    (function worldCupTab() {
+        const apiKey = "";
+
+        // State
+        let wcSelectedTheme = 'stadium-supporter';
+        let wcSelectedRatio = '16:9';
+        let wcSelectedCount = 4;
+        let wcFaceImages = []; // Array of { mimeType, base64 }, max 5
+        let wcGeneratedImages = [];
+
+        const WC_NEGATIVE_PROMPT = `STRICT RULES:
+- Preserve the EXACT facial identity of EACH person from the reference photos (no morphing, no chibi-fication, no age/ethnicity change).
+- Use the official national team jersey colors and flag of the given country accurately.
+- All text in any overlay, banner, scoreboard, signage, jersey sponsor, or caption MUST be in Indonesian or English ONLY. NEVER use Malay, Tagalog, Vietnamese, Thai, or other Southeast Asian languages.
+- Hands look natural — no extra fingers, no deformed hands.
+- No watermark, no distortion, no blur on faces.`;
+
+        // Auto-varied camera angle pool — cycled per result card.
+        const WC_ANGLE_POOL = [
+            'Camera: Wide establishing shot — the full stadium / scene visible with rich environment context.',
+            'Camera: Medium shot — waist-up framing, subjects and surroundings balanced.',
+            'Camera: Close-up — tight on faces and raw emotion, intimate framing.',
+            'Camera: Low angle — camera below eye-level looking up, heroic dramatic perspective.',
+            'Camera: High angle — elevated broadcast camera POV looking down on the scene.',
+            'Camera: Dynamic action angle — slight motion blur, energetic sports-photography feel.',
+            'Camera: Over-the-shoulder / behind perspective looking toward the action and the crowd.',
+        ];
+
+        function wcImageInputs(faceCount) {
+            return `- Images 1 to ${faceCount}: faces of the ${faceCount} person(s) to place into the scene (preserve each identity exactly)`;
+        }
+
+        const WC_THEMES = {
+            'stadium-supporter': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} as passionate ${ctx.country} football supporter(s) in the stadium stands during a World Cup match. Wearing the ${ctx.country} national team jersey and colors, faces painted with the ${ctx.country} flag, holding ${ctx.country} flags and scarves, surrounded by a dense roaring crowd (slightly blurred), confetti drifting, bright stadium floodlights. Festive electric World Cup atmosphere.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, sports photojournalism, dramatic stadium lighting, lens flare. ${WC_NEGATIVE_PROMPT}`,
+
+            'on-pitch-player': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} as professional World Cup football player(s) standing on the pitch of a massive packed stadium. Wearing the official ${ctx.country} national team kit (correct colors and crest), confident athletic posture, stadium floodlights and a huge crowd in the background.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, professional sports photography, cinematic depth of field. ${WC_NEGATIVE_PROMPT}`,
+
+            'lift-trophy': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} as ${ctx.country} football champion(s) lifting the golden World Cup trophy in triumphant celebration. Gold confetti raining down, euphoric expressions, wearing the ${ctx.country} national team kit with gold medals, a packed stadium erupting in the background, dramatic spotlight. Iconic victory moment.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, epic sports celebration photography, golden cinematic lighting. ${WC_NEGATIVE_PROMPT}`,
+
+            'jersey-portrait': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Cinematic studio portrait of ${ctx.subj} wearing the ${ctx.country} national team jersey, with ${ctx.country} flag face paint on the cheeks. Dramatic moody lighting, ${ctx.country} flag colors as a background accent, intense proud expression, high-detail editorial sports portrait.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, editorial portrait photography, dramatic studio lighting, sharp detail. ${WC_NEGATIVE_PROMPT}`,
+
+            'goal-celebration': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} as ${ctx.country} player(s) celebrating a goal on the pitch — sliding on the knees, arms wide, screaming in joy — wearing the ${ctx.country} kit. The stadium crowd exploding in the background, floodlights, grass spray flying, peak-emotion sports action shot.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, high-speed sports action photography, motion energy. ${WC_NEGATIVE_PROMPT}`,
+
+            'fan-zone': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} as ${ctx.country} fans at an outdoor World Cup fan zone / public viewing festival. A giant screen showing the match in the background, a crowd of fans waving ${ctx.country} flags, food stalls, warm string lights, festive night atmosphere, wearing ${ctx.country} jerseys.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, lifestyle event photography, warm festive night lighting. ${WC_NEGATIVE_PROMPT}`,
+
+            'player-tunnel': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} as ${ctx.country} national team player(s) walking out of the stadium players' tunnel onto the pitch before a World Cup match, wearing the ${ctx.country} kit. Dramatic tunnel lighting transitioning into the bright stadium, focused game-face expression, photographers' camera flashes.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, cinematic sports photography, dramatic light transition. ${WC_NEGATIVE_PROMPT}`,
+
+            'team-squad': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Official ${ctx.country} World Cup team squad photograph of ${ctx.subj} lined up on the pitch before kickoff, wearing the ${ctx.country} national kit, in the classic team-photo pose (arms crossed or hands behind the back), the stadium and crowd behind them. Clean professional sports team photograph.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, official team photography, even professional lighting. ${WC_NEGATIVE_PROMPT}`,
+
+            'press-conference': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic photo of ${ctx.subj} at a World Cup press conference, seated behind a desk with microphones, an official tournament sponsor backdrop behind them, wearing ${ctx.country} team apparel, confident composed expression, press-photography lighting.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, press conference photography, clean professional lighting. ${WC_NEGATIVE_PROMPT}`,
+
+            'trading-card': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+A premium FIFA-style football trading card featuring ${ctx.subj} as ${ctx.country} player(s). Wearing the ${ctx.country} kit in a dynamic hero pose, the card design shows the ${ctx.country} flag, a player name area, a rating number and stat boxes, framed in a holographic gold premium card frame. Collectible trading-card aesthetic.
+
+${ctx.customLine}
+
+Style: ultra-realistic subject, premium graphic card design, holographic gold accents, 8K. ${WC_NEGATIVE_PROMPT}`,
+
+            'custom': (ctx) => `IMPORTANT — Image inputs:
+${wcImageInputs(ctx.faceCount)}
+
+Ultra-realistic World Cup themed photo of ${ctx.subj} supporting ${ctx.country}. Setting and atmosphere: ${ctx.customTheme || 'a festive World Cup celebration'}. Wearing ${ctx.country} national team colors where appropriate.
+
+${ctx.customLine}
+
+Style: ultra-realistic, 8K, cinematic lighting, sharp focus. ${WC_NEGATIVE_PROMPT}`,
+        };
+
+        function buildWorldCupPrompt(themeId, faceCount, country, customTheme, customText) {
+            const builder = WC_THEMES[themeId] || WC_THEMES['stadium-supporter'];
+            const subj = faceCount === 1 ? 'the person' : `the ${faceCount} people`;
+            return builder({
+                faceCount: faceCount,
+                country: (country || 'the national team').trim(),
+                subj: subj,
+                customTheme: (customTheme || '').trim(),
+                customLine: customText ? `Additional user direction: ${customText}` : '',
+            });
+        }
+
+        // ============================================================================
+        // Handlers
+        // ============================================================================
+        const wcGenerateBtn = document.getElementById('wc-generate-btn');
+        const wcFacesInput = document.getElementById('wc-faces-upload');
+        const wcFacesPreview = document.getElementById('wc-faces-preview');
+        const wcFacesCount = document.getElementById('wc-faces-count');
+        const wcCountryInput = document.getElementById('wc-country');
+        const wcCustomThemeWrap = document.getElementById('wc-custom-theme-wrap');
+        const wcCustomThemeInput = document.getElementById('wc-custom-theme');
+        const wcCustomPromptInput = document.getElementById('wc-custom-prompt');
+        const wcEmptyState = document.getElementById('wc-empty-state');
+        const wcLoadingEl = document.getElementById('wc-loading');
+        const wcResultsHeader = document.getElementById('wc-results-header');
+        const wcResultsCountEl = document.getElementById('wc-results-count');
+        const wcResultsGrid = document.getElementById('wc-results-grid');
+        const wcDownloadAllBtn = document.getElementById('wc-download-all-btn');
+        const wcPreviewModal = document.getElementById('wc-preview-modal');
+        const wcPreviewImage = document.getElementById('wc-preview-image');
+        const wcPreviewClose = document.getElementById('wc-preview-close');
+
+        function checkWCReadyToGenerate() {
+            if (!wcGenerateBtn) return;
+            const hasFaces = wcFaceImages.length > 0;
+            const hasCountry = (wcCountryInput?.value || '').trim().length > 0;
+            wcGenerateBtn.disabled = !(hasFaces && hasCountry);
+        }
+
+        function renderWCFacesPreview() {
+            if (!wcFacesPreview) return;
+            wcFacesPreview.innerHTML = '';
+            if (wcFaceImages.length === 0) {
+                wcFacesPreview.classList.add('hidden');
+                if (wcFacesCount) wcFacesCount.textContent = '0/5 foto';
+                return;
+            }
+            wcFacesPreview.classList.remove('hidden');
+            wcFaceImages.forEach((img, idx) => {
+                const card = document.createElement('div');
+                card.className = 'relative aspect-square rounded-lg overflow-hidden border-2';
+                card.style.borderColor = '#eab308';
+                card.innerHTML = `
+                    <img src="data:${img.mimeType};base64,${img.base64}" class="w-full h-full object-cover" alt="Face ${idx + 1}">
+                    <button type="button" data-wc-face-remove="${idx}" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md hover:bg-red-600">&times;</button>
+                    <div class="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">${idx + 1}</div>
+                `;
+                wcFacesPreview.appendChild(card);
+            });
+            if (wcFacesCount) wcFacesCount.textContent = `${wcFaceImages.length}/5 foto`;
+        }
+
+        if (wcFacesInput) {
+            wcFacesInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files || []);
+                for (const file of files) {
+                    if (wcFaceImages.length >= 5) break;
+                    await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                            const dataUrl = evt.target.result;
+                            const base64 = dataUrl.split(',')[1];
+                            const mimeType = (dataUrl.split(';')[0] || '').split(':')[1];
+                            wcFaceImages.push({ mimeType, base64 });
+                            resolve();
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+                renderWCFacesPreview();
+                checkWCReadyToGenerate();
+                wcFacesInput.value = '';
+            });
+        }
+
+        if (wcFacesPreview) {
+            wcFacesPreview.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-wc-face-remove]');
+                if (!btn) return;
+                const idx = parseInt(btn.dataset.wcFaceRemove, 10);
+                if (!isNaN(idx)) {
+                    wcFaceImages.splice(idx, 1);
+                    renderWCFacesPreview();
+                    checkWCReadyToGenerate();
+                }
+            });
+        }
+
+        // Theme selector (Custom reveals free-text setting input)
+        document.querySelectorAll('#wc-themes-grid button[data-wc-theme]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                wcSelectedTheme = btn.dataset.wcTheme;
+                document.querySelectorAll('#wc-themes-grid button[data-wc-theme]').forEach(b => {
+                    b.classList.toggle('selected', b.dataset.wcTheme === wcSelectedTheme);
+                });
+                if (wcCustomThemeWrap) {
+                    wcCustomThemeWrap.classList.toggle('hidden', wcSelectedTheme !== 'custom');
+                }
+            });
+        });
+
+        // Ratio selector
+        document.querySelectorAll('#wc-ratio-options button[data-wc-ratio]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                wcSelectedRatio = btn.dataset.wcRatio;
+                document.querySelectorAll('#wc-ratio-options button[data-wc-ratio]').forEach(b => {
+                    b.classList.toggle('selected', b.dataset.wcRatio === wcSelectedRatio);
+                });
+            });
+        });
+
+        // Count selector
+        document.querySelectorAll('#wc-count-options button[data-wc-count]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                wcSelectedCount = parseInt(btn.dataset.wcCount, 10);
+                document.querySelectorAll('#wc-count-options button[data-wc-count]').forEach(b => {
+                    b.classList.toggle('selected', parseInt(b.dataset.wcCount, 10) === wcSelectedCount);
+                });
+            });
+        });
+
+        if (wcCountryInput) wcCountryInput.addEventListener('input', checkWCReadyToGenerate);
+
+        // Preview modal handlers
+        function openWCPreview(imageUrl) {
+            if (!wcPreviewModal || !wcPreviewImage) return;
+            wcPreviewImage.src = imageUrl;
+            wcPreviewModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeWCPreview() {
+            if (!wcPreviewModal) return;
+            wcPreviewModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        if (wcPreviewClose) wcPreviewClose.addEventListener('click', closeWCPreview);
+        if (wcPreviewModal) {
+            wcPreviewModal.addEventListener('click', (e) => {
+                if (e.target === wcPreviewModal) closeWCPreview();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && wcPreviewModal && !wcPreviewModal.classList.contains('hidden')) {
+                closeWCPreview();
+            }
+        });
+
+        // Results grid click delegation — preview button
+        if (wcResultsGrid) {
+            wcResultsGrid.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-wc-action="preview"]');
+                if (!btn) return;
+                const idx = parseInt(btn.dataset.wcIndex, 10);
+                if (!isNaN(idx) && wcGeneratedImages[idx]) {
+                    openWCPreview(wcGeneratedImages[idx].url);
+                }
+            });
+        }
+
+        async function generateSingleWCPhoto(index, basePrompt) {
+            const card = document.getElementById(`wc-card-${index}`);
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+                const angleLine = WC_ANGLE_POOL[(index - 1) % WC_ANGLE_POOL.length];
+                const finalPrompt = `${basePrompt}\n\n${angleLine}\n\nVariation ${index}: slightly vary the pose, gesture and composition while preserving each person's exact identity and the national team colors.`;
+
+                const parts = [{ text: finalPrompt }];
+                wcFaceImages.forEach((img) => {
+                    parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } });
+                });
+
+                const payload = {
+                    contents: [{ parts }],
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE'],
+                        imageConfig: { aspectRatio: wcSelectedRatio }
+                    },
+                    safetySettings: [
+                        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_HATE_SPEECH',        threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',  threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT',  threshold: 'BLOCK_NONE' }
+                    ]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const imageData = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (!imageData) throw new Error('No image data in response');
+
+                const imageUrl = `data:image/jpeg;base64,${imageData}`;
+                const filename = `worldcup-${wcSelectedTheme}-${index}-${Date.now()}.jpg`;
+
+                wcGeneratedImages[index - 1] = { url: imageUrl, filename };
+
+                if (card) {
+                    card.className = 'relative group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300';
+                    card.innerHTML = `<img src="${imageUrl}" class="w-full object-contain cursor-pointer" alt="World Cup ${index}" data-wc-action="preview" data-wc-index="${index - 1}">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition flex items-end justify-center pb-3 gap-2">
+                            <button type="button" data-wc-action="preview" data-wc-index="${index - 1}" class="bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full font-semibold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                                <i class="fas fa-eye"></i><span class="hidden sm:inline" data-i18n="wc.preview">Preview</span>
+                            </button>
+                            <a href="${imageUrl}" download="${filename}" data-action="download" class="bg-gradient-to-r from-green-700 to-yellow-500 hover:from-green-800 hover:to-yellow-600 text-white px-4 py-2 rounded-full font-semibold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                                <i class="fas fa-download"></i><span class="hidden sm:inline" data-i18n="wc.download">Download</span>
+                            </a>
+                        </div>`;
+                }
+            } catch (err) {
+                console.error(`World Cup generate error #${index}:`, err);
+                if (card) card.innerHTML = '';
+            }
+        }
+
+        async function generateWCPhotos() {
+            const lang = (typeof localStorage !== 'undefined' && localStorage.getItem('app_language')) || 'id';
+
+            if (wcFaceImages.length === 0) {
+                const msg = (lang === 'en')
+                    ? 'Upload at least 1 face photo first to generate.'
+                    : 'Upload minimal 1 foto wajah dulu untuk generate.';
+                if (typeof showError === 'function') { showError(msg); } else { alert(msg); }
+                return;
+            }
+
+            const country = (wcCountryInput?.value || '').trim();
+            if (!country) {
+                const msg = (lang === 'en')
+                    ? 'Enter the country/team name first.'
+                    : 'Ketik nama negara/tim dulu.';
+                if (typeof showError === 'function') { showError(msg); } else { alert(msg); }
+                return;
+            }
+
+            if (wcEmptyState) wcEmptyState.classList.add('hidden');
+            if (wcLoadingEl) wcLoadingEl.classList.remove('hidden');
+            if (wcResultsHeader) wcResultsHeader.classList.add('hidden');
+
+            const customTheme = (wcCustomThemeInput?.value || '').trim();
+            const customText = (wcCustomPromptInput?.value || '').trim();
+            const basePrompt = buildWorldCupPrompt(wcSelectedTheme, wcFaceImages.length, country, customTheme, customText);
+
+            let attempts = 0;
+            const MAX_ATTEMPTS = 3;
+            let successCount = 0;
+
+            while (attempts < MAX_ATTEMPTS && successCount === 0) {
+                attempts++;
+                wcGeneratedImages = [];
+                if (wcResultsGrid) {
+                    wcResultsGrid.innerHTML = '';
+                    wcResultsGrid.classList.remove('hidden');
+                }
+
+                for (let i = 1; i <= wcSelectedCount; i++) {
+                    const card = document.createElement('div');
+                    card.id = `wc-card-${i}`;
+                    card.className = 'relative rounded-xl overflow-hidden bg-gradient-to-br from-green-50 to-yellow-50 flex items-center justify-center aspect-video border-2';
+                    card.style.borderColor = '#eab308';
+                    card.innerHTML = `<div class="animate-spin rounded-full h-10 w-10 border-b-3 border-t-3" style="border-color: #eab308;"></div>`;
+                    if (wcResultsGrid) wcResultsGrid.appendChild(card);
+                }
+
+                const promises = Array.from({ length: wcSelectedCount }, (_, i) =>
+                    generateSingleWCPhoto(i + 1, basePrompt)
+                );
+                await Promise.allSettled(promises);
+
+                if (wcResultsGrid) {
+                    wcResultsGrid.querySelectorAll('[id^="wc-card-"]').forEach(card => {
+                        if (!card.querySelector('img')) card.remove();
+                    });
+                }
+                successCount = wcGeneratedImages.filter(Boolean).length;
+            }
+
+            if (wcLoadingEl) wcLoadingEl.classList.add('hidden');
+            if (successCount === 0) {
+                alert('Akun Google ini sudah mencapai batas, silahkan gunakan akun Google lain');
+            } else {
+                if (wcResultsHeader) wcResultsHeader.classList.remove('hidden');
+                if (wcResultsCountEl) wcResultsCountEl.textContent = wcGeneratedImages.filter(Boolean).length;
+                if (wcDownloadAllBtn) wcDownloadAllBtn.classList.remove('hidden');
+                if (wcResultsGrid) wcResultsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        if (wcGenerateBtn) wcGenerateBtn.addEventListener('click', async () => {
+            if (wcGenerateBtn.disabled) return;
+            wcGenerateBtn.disabled = true;
+            try { await generateWCPhotos(); }
+            finally { checkWCReadyToGenerate(); }
+        });
+
+        if (wcDownloadAllBtn) {
+            wcDownloadAllBtn.addEventListener('click', () => {
+                wcGeneratedImages.filter(Boolean).forEach(({ url, filename }, i) => {
+                    setTimeout(() => {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        a.click();
+                    }, i * 200);
+                });
+            });
+        }
+
+        checkWCReadyToGenerate();
     })();
 
     // ==================== PRODUCT PREMIUM (Foto Produk Premium) ====================
