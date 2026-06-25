@@ -888,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- UPDATE INFO BUTTON LOGIC ---
     (function() {
-        const UPDATE_VERSION = '38';
+        const UPDATE_VERSION = '39';
         const STORAGE_KEY = 'affiliatego_update_seen';
         const btn = document.getElementById('update-info-btn');
         if (!btn) return;
@@ -896,6 +896,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Releases history — newest first. Max 3 displayed in modal.
         // Saat user bilang "rilis" untuk versi baru: prepend entry baru di sini, geser yang lain ke bawah, drop entry ke-4.
         const RELEASES = [
+            {
+                version: '39',
+                dateId: 'Juni 2026',
+                dateEn: 'June 2026',
+                badgeKey: 'modal.fix-v39-badge',
+                badgeText: 'Update v39',
+                gradient: 'linear-gradient(135deg,#0ea5e9,#6366f1)',
+                borderColor: '#0ea5e9',
+                icon: 'fa-language',
+                iconColor: '#0ea5e9',
+                items: [
+                    {
+                        titleKey: 'modal.fix-v39-title-melayu',
+                        titleText: 'Sokongan Penuh Bahasa Melayu',
+                        bodyKey: 'modal.fix-v39-body-melayu',
+                        bodyText: 'Seluruh aplikasi kini boleh ditukar ke Bahasa Melayu. Lebih 88 tab beserta nama menu navigasi (sidebar & mobile) sudah diterjemahkan penuh. Tekan penyukar bahasa di atas untuk bertukar antara Indonesia, English, dan Melayu — pilihan kamu disimpan automatik untuk lawatan seterusnya.'
+                    }
+                ]
+            },
             {
                 version: '38',
                 dateId: 'Juni 2026',

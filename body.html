@@ -49,7 +49,7 @@
     <div id="main-app">
     <!-- Mobile Header -->
     <div class="mobile-header">
-        <h1><i class="fas fa-magic"></i> Affiliate Go Foto Studio <span class="text-xs bg-gradient-to-r from-green-600 to-emerald-700 text-white px-2 py-1 rounded-full">V38</span></h1>
+        <h1><i class="fas fa-magic"></i> Affiliate Go Foto Studio <span class="text-xs bg-gradient-to-r from-green-600 to-emerald-700 text-white px-2 py-1 rounded-full">V39</span></h1>
         <p class="text-xs text-gray-400 mt-1">by Arul CG</p>
         <div class="mobile-header-actions">
             <button type="button" id="mobile-fav-access-btn" class="mobile-fav-access-btn no-favs" aria-label="Buka tab favorit">
@@ -61,9 +61,16 @@
                 <i class="fas fa-shield-halved"></i>
                 <span data-i18n="bebas-iklan.btn">Hilangkan Iklan</span>
             </button>
-            <div class="mobile-lang-toggle">
-                <button type="button" class="mobile-lang-btn lang-active" data-lang="id" aria-label="Bahasa Indonesia">ID</button>
-                <button type="button" class="mobile-lang-btn" data-lang="en" aria-label="English">EN</button>
+            <div class="mobile-lang-toggle lang-dropdown" id="lang-dropdown-mobile">
+                <button type="button" class="lang-dd-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span data-lang-label>Indonesia</span>
+                    <i class="fas fa-chevron-down lang-dd-caret"></i>
+                </button>
+                <ul class="lang-dd-menu" role="listbox">
+                    <li class="lang-dd-option lang-active" data-lang="id" role="option">Indonesia</li>
+                    <li class="lang-dd-option" data-lang="en" role="option">English</li>
+                    <li class="lang-dd-option" data-lang="ms" role="option">Melayu</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -77,11 +84,18 @@
                 </h1>
                 <p class="text-xs text-gray-500 mt-1">by Arul CG</p>
                 <div class="mt-2">
-                    <span class="text-xs bg-gradient-to-r from-green-600 to-emerald-700 text-white px-3 py-1 rounded-full font-semibold shadow-lg">V38</span>
+                    <span class="text-xs bg-gradient-to-r from-green-600 to-emerald-700 text-white px-3 py-1 rounded-full font-semibold shadow-lg">V39</span>
                 </div>
-                <div class="lang-toggle mt-2">
-                    <button type="button" class="lang-toggle-btn lang-active" data-lang="id" aria-label="Bahasa Indonesia">ID</button>
-                    <button type="button" class="lang-toggle-btn" data-lang="en" aria-label="English">EN</button>
+                <div class="lang-dropdown mt-2" id="lang-dropdown-desktop">
+                    <button type="button" class="lang-dd-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span data-lang-label>Indonesia</span>
+                        <i class="fas fa-chevron-down lang-dd-caret"></i>
+                    </button>
+                    <ul class="lang-dd-menu" role="listbox">
+                        <li class="lang-dd-option lang-active" data-lang="id" role="option">Indonesia</li>
+                        <li class="lang-dd-option" data-lang="en" role="option">English</li>
+                        <li class="lang-dd-option" data-lang="ms" role="option">Melayu</li>
+                    </ul>
                 </div>
                 <button type="button" id="hilangkan-iklan-btn" class="hilangkan-iklan-btn" aria-label="Hilangkan Iklan">
                     <i class="fas fa-shield-halved"></i>
@@ -16720,7 +16734,7 @@
                             <div>
                                 <div class="flex items-center gap-3 mb-4">
                                     <div class="flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm shadow-lg" style="background: linear-gradient(135deg, #06b6d4, #0284c1);">8</div>
-                                    <h3 class="text-lg font-bold text-gray-800">Rasio Foto</h3>
+                                    <h3 class="text-lg font-bold text-gray-800" data-i18n="mr.step8">Rasio Foto</h3>
                                 </div>
                                 <div id="mirror-ratio-options" class="grid grid-cols-3 gap-3">
                                     <button type="button" data-value="9:16" class="option-btn-mirror selected">
@@ -18227,7 +18241,7 @@
     <button id="update-info-btn" class="text-white rounded-full w-16 h-16 flex items-center justify-center shadow-xl relative" style="background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);">
         <div class="flex flex-col items-center leading-none pointer-events-none">
             <i class="fas fa-bolt text-sm"></i>
-            <span class="text-xs font-bold mt-0.5">V38</span>
+            <span class="text-xs font-bold mt-0.5">V39</span>
         </div>
         <span class="update-notif-dot"></span>
     </button>

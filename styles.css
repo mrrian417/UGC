@@ -9688,6 +9688,39 @@
         }
         /* ===== END LANGUAGE TOGGLE ===== */
 
+        /* ===== LANGUAGE DROPDOWN (ID / EN / MS) ===== */
+        .lang-dropdown { position: relative; display: inline-block; }
+        .lang-dd-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            padding: 5px 12px; min-height: 32px;
+            border-radius: 9999px; border: 1.5px solid #16a34a;
+            color: #16a34a; background: transparent; cursor: pointer;
+            transition: all 0.2s ease; -webkit-tap-highlight-color: transparent;
+        }
+        .lang-dd-btn:hover { background-color: rgba(22, 163, 74, 0.1); }
+        .lang-dd-caret { font-size: 0.6rem; transition: transform 0.2s ease; }
+        .lang-dropdown.open .lang-dd-caret { transform: rotate(180deg); }
+        .lang-dd-menu {
+            position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%);
+            list-style: none; margin: 0; padding: 4px;
+            background: white; border: 1.5px solid #16a34a; border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15); z-index: 50;
+            display: none; min-width: 130px;
+        }
+        .lang-dropdown.open .lang-dd-menu { display: block; }
+        .lang-dd-option {
+            padding: 10px 14px; min-height: 44px; display: flex; align-items: center;
+            font-size: 0.8rem; font-weight: 600; color: #15803d;
+            border-radius: 8px; cursor: pointer; white-space: nowrap;
+        }
+        .lang-dd-option:hover { background: rgba(22,163,74,0.1); }
+        .lang-dd-option.lang-active { background: linear-gradient(135deg,#16a34a,#15803d); color: white; }
+        /* Varian mobile (header gelap) */
+        .mobile-lang-toggle .lang-dd-btn { border-color: rgba(255,255,255,0.7); color: white; background: rgba(255,255,255,0.15); }
+        .mobile-lang-toggle .lang-dd-btn:hover { background: rgba(255,255,255,0.25); }
+        /* ===== END LANGUAGE DROPDOWN ===== */
+
         /* ===== BEBAS IKLAN — OVERLAY LOCK & STATUS BADGE ===== */
         #ad-lock-overlay {
             position: fixed;
