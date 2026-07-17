@@ -3,7 +3,7 @@
 // patches DOMContentLoaded semantics so dynamically-loaded scripts see the
 // event fire even though it already passed during initial shell parse.
 (function () {
-  var CDN = "https://cdn.jsdelivr.net/gh/mrrian417/UGC@main";
+  var CDN = "https://cdn.jsdelivr.net/gh/mrrian417/UGC@main?v=20250617";
 
   // Patch addEventListener once: when a script registers a DOMContentLoaded
   // handler AFTER the event has already fired (which is always the case here
