@@ -7028,7 +7028,7 @@
             const newToken = generateToken();
 
             // Panggil Google Apps Script (Action: login)
-            fetch(SCRIPT_URL + "?action=login&email=" + encodeURIComponent(email) + "&token=" + encodeURIComponent(newToken) + "&app_secret=" + encodeURIComponent(APP_SECRET) + "&product=" + encodeURIComponent(PRODUCT_ID))
+            fetch(SCRIPT_URL + "?action=login&email=" + encodeURIComponent(email) + "&token=" + encodeURIComponent(newToken) + "&app_secret=" + encodeURIComponent(APP_SECRET))
                 .then(res => res.json())
                 .then(data => {
                     loading.style.display = "none";
