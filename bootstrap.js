@@ -1,6 +1,6 @@
 // Auto-generated runtime loader for thin Canvas shell.
 (function () {
-   var CDN = "https://cdn.jsdelivr.net/gh/mrrian417/UGC@50d1e9f";
+   var CDN = "https://cdn.jsdelivr.net/gh/mrrian417/UGC@main";
 
   var _origAdd = document.addEventListener;
   document.addEventListener = function (type, listener, opts) {
