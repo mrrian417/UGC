@@ -13,7 +13,7 @@
             <!-- AG Logo badge -->
             <div style="background:linear-gradient(135deg,#16a34a,#15803d);width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.35rem;font-weight:900;color:white;box-shadow:0 6px 18px rgba(22,163,74,0.4);">AG</div>
             <h2 data-i18n="login.title" style="font-size:1.4rem;font-weight:800;color:#1f2937;margin-bottom:4px;">Affiliate GO</h2>
-            <p data-i18n="login.subtitle" style="font-size:0.875rem;color:#64748b;margin-bottom:1.5rem;">Foto Studio by Dian</p>
+            <p data-i18n="login.subtitle" style="font-size:0.875rem;color:#64748b;margin-bottom:1.5rem;">Foto Studio by Arul CG</p>
 
             <input type="email" id="emailInput" class="login-input" data-i18n-placeholder="login.email-placeholder" placeholder="&#x2709; Email pembelian kamu..." autocomplete="email">
             <button onclick="prosesLogin()" class="login-btn" data-i18n="login.btn">
@@ -50,7 +50,7 @@
     <!-- Mobile Header -->
     <div class="mobile-header">
         <h1><i class="fas fa-magic"></i> Affiliate Go Foto Studio <span class="text-xs bg-gradient-to-r from-green-600 to-emerald-700 text-white px-2 py-1 rounded-full">V39</span></h1>
-        <p class="text-xs text-gray-400 mt-1">by Dian</p>
+        <p class="text-xs text-gray-400 mt-1">by Arul CG</p>
         <div class="mobile-header-actions">
             <button type="button" id="mobile-fav-access-btn" class="mobile-fav-access-btn no-favs" aria-label="Buka tab favorit">
                 <i class="fas fa-star"></i>
@@ -82,7 +82,7 @@
                 <h1 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-700">
                     Affiliate Go Foto Studio
                 </h1>
-                <p class="text-xs text-gray-500 mt-1">by Dian</p>
+                <p class="text-xs text-gray-500 mt-1">by Arul CG</p>
                 <div class="mt-2">
                     <span class="text-xs bg-gradient-to-r from-green-600 to-emerald-700 text-white px-3 py-1 rounded-full font-semibold shadow-lg">V39</span>
                 </div>
@@ -118,11 +118,10 @@
                     <div id="favorites-container"></div>
                 </div>
 
-                <!-- RUANGSAKU (sponsored partner — info + redirect ke ruangsaku.com) -->
-                <button data-tab="ruangsaku" class="main-tab-btn" style="margin-bottom: 1rem;">
-                    <i class="fas fa-globe"></i>
-                    <span class="btn-text">Ruang Saku</span>
-                    <span class="ads-badge">ADS</span>
+                <!-- UPSCALE Tab (paid feature, quota-based — ESRGAN 2K/4K) -->
+                <button data-tab="upscale" class="main-tab-btn" style="margin-bottom: 1rem;">
+                    <i class="fas fa-expand"></i>
+                    <span class="btn-text" data-i18n="nav.upscale">Upscale</span>
                 </button>
 
                 <!-- MEMBUAT MODEL Tab -->
@@ -539,28 +538,23 @@
                 </div>
 
                 <!-- VIDEO & AUDIO Category -->
-<div class="menu-category">
-    <div class="menu-category-title" data-i18n-cat="video-audio">
-        <i class="fas fa-film mr-1"></i> Video & Audio
-    </div>
-    <button data-tab="opal" class="main-tab-btn">
-        <i class="fas fa-magic"></i>
-        <span class="btn-text">Opal Image to Video</span>
-    </button>
-    <button data-tab="voice-over" class="main-tab-btn">
-        <i class="fas fa-microphone"></i>
-        <span class="btn-text">Voice Over</span>
-    </button>
-    <button data-tab="video-analyzer" class="main-tab-btn">
-        <i class="fas fa-film"></i>
-        <span class="btn-text">Video Analyzer</span>
-    </button>
-    <!-- UPSCALE Tab (paid feature, quota-based — ESRGAN 2K/4K) -->
-    <button data-tab="upscale" class="main-tab-btn">
-        <i class="fas fa-expand"></i>
-        <span class="btn-text" data-i18n="nav.upscale">Upscale</span>
-    </button>
-</div>
+                <div class="menu-category">
+                    <div class="menu-category-title" data-i18n-cat="video-audio">
+                        <i class="fas fa-film mr-1"></i> Video & Audio
+                    </div>
+                    <button data-tab="opal" class="main-tab-btn">
+                        <i class="fas fa-magic"></i>
+                        <span class="btn-text">Opal Image to Video</span>
+                    </button>
+                    <button data-tab="voice-over" class="main-tab-btn">
+                        <i class="fas fa-microphone"></i>
+                        <span class="btn-text">Voice Over</span>
+                    </button>
+                    <button data-tab="video-analyzer" class="main-tab-btn">
+                        <i class="fas fa-film"></i>
+                        <span class="btn-text">Video Analyzer</span>
+                    </button>
+                </div>
             </nav>
         </aside>
 
@@ -593,7 +587,7 @@
                         Asisten AI Anda untuk menjelajahi 79++ fitur photo & video generation
                     </p>
                     <p class="text-sm opacity-75 mt-2" data-i18n="beranda.hint">
-                        Tanya apa saja tentang fitur aplikasi ini! by Dian
+                        Tanya apa saja tentang fitur aplikasi ini! by Arul CG
                     </p>
                 </header>
 
@@ -608,7 +602,7 @@
                                 </div>
                                 <div class="flex-1 bg-white rounded-2xl rounded-tl-none p-4 shadow-md border border-gray-100">
                                     <p class="text-gray-800 leading-relaxed" data-i18n-html="beranda.bot-greeting">
-                                         Halo! Saya AI Assistant untuk <strong>Affiliate Go Foto Studio</strong> by Dian.
+                                         Halo! Saya AI Assistant untuk <strong>Affiliate Go Foto Studio</strong> by Arul CG.
                                         <br><br>
                                         Saya siap membantu Anda dengan berbagai pertanyaan. Tanya saya tentang apa saja!
                                         <br><br>
@@ -2254,7 +2248,7 @@
                                         <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-md" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">4</div>
                                         <h3 class="text-lg font-bold text-gray-800" data-i18n="sp.step4">Nama Karakter / Username</h3>
                                     </div>
-                                    <input type="text" id="studio-profil-character-name-input" class="w-full p-3 border-2 rounded-xl text-sm transition-all focus:outline-none" style="border-color: #c7d2fe; background: #fafaff;" maxlength="40" data-i18n-placeholder="sp.name-placeholder" placeholder="Contoh: Dian">
+                                    <input type="text" id="studio-profil-character-name-input" class="w-full p-3 border-2 rounded-xl text-sm transition-all focus:outline-none" style="border-color: #c7d2fe; background: #fafaff;" maxlength="40" data-i18n-placeholder="sp.name-placeholder" placeholder="Contoh: Arul CG">
                                 </div>
 
                                 <!-- Step 4: Bio (optional) -->
@@ -11171,88 +11165,6 @@
         <!-- TAB: HAPUS BACKGROUND (WEBVIEW) -->
         <div id="content-remove-bg" class="main-content-panel hidden">
             <iframe src="https://pixlr.com/id/remove-background/" class="w-full h-[85vh] border-0 rounded-lg shadow-lg" title="Hapus Background" allow="camera; microphone"></iframe>
-        </div>
-
-        <!-- TAB: RUANG SAKU (info + CTA ke ruangsaku.com) -->
-        <div id="content-ruangsaku" class="main-content-panel hidden">
-            <div class="max-w-5xl mx-auto p-4 sm:p-6">
-
-                <!-- Hero -->
-                <div class="text-center mb-8 sm:mb-12">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 rounded-full text-xs sm:text-sm font-semibold mb-4 border border-blue-200">
-                        <i class="fas fa-comments"></i>
-                        <span data-i18n="rs.badge">Teman AI keuanganmu</span>
-                    </div>
-                    <h1 class="text-3xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight" data-i18n="rs.hero-title">
-                        Ngobrol soal uang, sesantai curhat ke teman.
-                    </h1>
-                    <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6" data-i18n="rs.hero-desc">
-                        Kenalan sama Rindu &#8212; teman AI yang bantu catat pengeluaran, pantau tabungan, sampai ingetin hutang. Tinggal chat aja, kayak ngobrol biasa.
-                    </p>
-                    <a href="https://ruangsaku.com" target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center gap-3 w-full sm:w-auto justify-center px-6 sm:px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white text-base sm:text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 active:scale-95">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span data-i18n="rs.hero-cta">Buka di RuangSaku.com</span>
-                    </a>
-                    <p class="text-xs text-gray-500 mt-3" data-i18n="rs.hero-cta-hint">
-                        Untuk pengalaman terbaik di HP, buka langsung di browser
-                    </p>
-                </div>
-
-                <!-- Features Grid -->
-                <div class="mb-8 sm:mb-12">
-                    <h2 class="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-6" data-i18n="rs.features-title">
-                        Satu teman, semua urusan uang
-                    </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100">
-                            <div class="text-3xl mb-3">&#128221;</div>
-                            <h3 class="font-bold text-gray-900 mb-2" data-i18n="rs.feat1-title">Catat Pengeluaran</h3>
-                            <p class="text-sm text-gray-600" data-i18n="rs.feat1-desc">"Beli kopi 25rb" &#8212; Rindu langsung tahu kategorinya dan catat ke dompet yang benar.</p>
-                        </div>
-                        <div class="p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100">
-                            <div class="text-3xl mb-3">&#127919;</div>
-                            <h3 class="font-bold text-gray-900 mb-2" data-i18n="rs.feat2-title">Pantau Tabungan</h3>
-                            <p class="text-sm text-gray-600" data-i18n="rs.feat2-desc">"Nabung 500rb buat umroh" &#8212; Rindu pantau progress dan kasih semangat tiap milestone.</p>
-                        </div>
-                        <div class="p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100">
-                            <div class="text-3xl mb-3">&#128184;</div>
-                            <h3 class="font-bold text-gray-900 mb-2" data-i18n="rs.feat3-title">Kelola Hutang</h3>
-                            <p class="text-sm text-gray-600" data-i18n="rs.feat3-desc">"Budi hutang 200rb" &#8212; Rindu yang ingatkan, siapa hutang berapa dan kapan deadline-nya.</p>
-                        </div>
-                        <div class="p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100">
-                            <div class="text-3xl mb-3">&#128202;</div>
-                            <h3 class="font-bold text-gray-900 mb-2" data-i18n="rs.feat4-title">Dashboard Pintar</h3>
-                            <p class="text-sm text-gray-600" data-i18n="rs.feat4-desc">Saldo dompet, tren pengeluaran, budget &#8212; semua update sendiri tanpa input manual.</p>
-                        </div>
-                        <div class="p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100">
-                            <div class="text-3xl mb-3">&#128276;</div>
-                            <h3 class="font-bold text-gray-900 mb-2" data-i18n="rs.feat5-title">Reminder Otomatis</h3>
-                            <p class="text-sm text-gray-600" data-i18n="rs.feat5-desc">Pagi kasih sisa budget, malam recap pengeluaran. Tagihan? Diingatkan 3 hari sebelumnya.</p>
-                        </div>
-                        <div class="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-md border border-blue-100 flex flex-col items-center justify-center text-center">
-                            <div class="text-3xl mb-2">&#10024;</div>
-                            <p class="text-sm font-semibold text-blue-900" data-i18n="rs.feat-free">Gratis selamanya</p>
-                            <p class="text-xs text-blue-700 mt-1" data-i18n="rs.feat-free-desc">Pro tersedia untuk yang butuh fitur lanjutan</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Final CTA -->
-                <div class="text-center p-6 sm:p-8 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl shadow-xl">
-                    <h2 class="text-xl sm:text-2xl font-bold text-white mb-2" data-i18n="rs.final-cta-title">
-                        Mulai dalam 2 menit
-                    </h2>
-                    <p class="text-blue-100 text-sm sm:text-base mb-5" data-i18n="rs.final-cta-desc">
-                        Daftar gratis, kenalan sama Rindu, langsung mulai ngobrol soal uang.
-                    </p>
-                    <a href="https://ruangsaku.com" target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center gap-3 w-full sm:w-auto justify-center px-6 sm:px-8 py-4 bg-white hover:bg-gray-50 text-blue-600 text-base sm:text-lg font-bold rounded-2xl shadow-lg transition-all transform hover:scale-105 active:scale-95">
-                        <i class="fas fa-rocket"></i>
-                        <span data-i18n="rs.final-cta-btn">Coba Gratis di RuangSaku.com</span>
-                    </a>
-                </div>
-            </div>
         </div>
 
         <!-- TAB: UPSCALE (paid feature, quota-based ESRGAN 2K/4K via fal.ai) -->
@@ -21404,11 +21316,10 @@
             <span>Beranda</span>
         </button>
 
-        <!-- RUANGSAKU (sponsored partner) -->
-        <button data-tab="ruangsaku" class="mobile-tab-btn">
-            <i class="fas fa-globe"></i>
-            <span>Ruang Saku</span>
-            <span class="ads-badge">ADS</span>
+        <!-- UPSCALE Tab (paid feature) -->
+        <button data-tab="upscale" class="mobile-tab-btn">
+            <i class="fas fa-expand"></i>
+            <span data-i18n="nav.upscale">Upscale</span>
         </button>
 
         <!-- MEMBUAT MODEL -->
@@ -21795,22 +21706,18 @@
         </button>
 
         <!-- VIDEO & AUDIO -->
-<button data-tab="opal" class="mobile-tab-btn">
-    <i class="fas fa-magic"></i>
-    <span>Opal</span>
-</button>
-<button data-tab="voice-over" class="mobile-tab-btn">
-    <i class="fas fa-microphone"></i>
-    <span>Voice</span>
-</button>
-<button data-tab="video-analyzer" class="mobile-tab-btn">
-    <i class="fas fa-chart-line"></i>
-    <span>Analyzer</span>
-</button>
-<button data-tab="upscale" class="mobile-tab-btn">
-    <i class="fas fa-expand"></i>
-    <span data-i18n="nav.upscale">Upscale</span>
-</button>
+        <button data-tab="opal" class="mobile-tab-btn">
+            <i class="fas fa-magic"></i>
+            <span>Opal</span>
+        </button>
+        <button data-tab="voice-over" class="mobile-tab-btn">
+            <i class="fas fa-microphone"></i>
+            <span>Voice</span>
+        </button>
+        <button data-tab="video-analyzer" class="mobile-tab-btn">
+            <i class="fas fa-chart-line"></i>
+            <span>Analyzer</span>
+        </button>
     </div>
 </nav>
 
