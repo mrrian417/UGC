@@ -1,14 +1,7 @@
 // Auto-generated runtime loader for thin Canvas shell.
-// Fetches body.html + bundle-classic.js + bundle-module.js from jsDelivr,
-// patches DOMContentLoaded semantics so dynamically-loaded scripts see the
-// event fire even though it already passed during initial shell parse.
 (function () {
   var CDN = "https://cdn.jsdelivr.net/gh/mrrian417/UGC@main";
 
-  // Patch addEventListener once: when a script registers a DOMContentLoaded
-  // handler AFTER the event has already fired (which is always the case here
-  // since bundles load dynamically), invoke the handler on next microtask
-  // instead of silently ignoring it.
   var _origAdd = document.addEventListener;
   document.addEventListener = function (type, listener, opts) {
     if (type === 'DOMContentLoaded' && document.readyState !== 'loading') {
@@ -40,18 +33,37 @@
 
   (async function boot() {
     try {
-      // 1. Fetch body HTML (the actual app structure: 86 tab panels, login, modals)
       var bodyRes = await fetch(CDN + '/body.html');
-      if (!bodyRes.ok) throw new Error('Fetch body.html → HTTP ' + bodyRes.status);
+      
+      if (!bodyRes.ok) {
+        // FALLBACK: Jika body.html gagal, gunakan HTML minimal
+        console.warn('body.html fetch failed, using fallback...');
+        var fallbackHtml = `
+          <div id="login-overlay" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;font-family:system-ui;">
+            <div style="background:#1a1a1a;padding:40px;border-radius:16px;max-width:400px;width:100%;text-align:center;color:#fff;border:1px solid #2a2a2a;">
+              <div style="font-size:48px;margin-bottom:8px;">📸</div>
+              <h1 style="font-size:24px;font-weight:700;color:#ea580c;margin:0;">Affiliate Go</h1>
+              <p style="color:#888;margin:4px 0 20px;">Foto Studio by Dian</p>
+              <input type="email" id="emailInput" placeholder="Email pembelian kamu..." style="width:100%;padding:14px;border-radius:10px;border:1px solid #333;background:#222;color:#fff;font-size:16px;box-sizing:border-box;margin-bottom:12px;">
+              <button onclick="window.login()" style="width:100%;padding:14px;background:#ea580c;border:none;border-radius:10px;color:#fff;font-weight:700;font-size:16px;cursor:pointer;">⚡ MASUK SEKARANG</button>
+              <p style="color:#666;font-size:12px;margin-top:12px;">🔒 Akses Terenkripsi & Aman</p>
+            </div>
+          </div>
+          <div id="main-app" style="display:none;"></div>
+        `;
+        document.body.insertAdjacentHTML('afterbegin', fallbackHtml);
+        
+        // Load bundles
+        await loadScript(CDN + '/bundle-classic.js', false);
+        await loadScript(CDN + '/bundle-module.js', true);
+        return;
+      }
+      
       var bodyHtml = await bodyRes.text();
-
-      // 2. Swap placeholder loader with real body
       var loader = document.getElementById('__loader');
       if (loader) loader.remove();
       document.body.insertAdjacentHTML('afterbegin', bodyHtml);
 
-      // 3. Load bundles in original document order: classic first (was inline blocking),
-      //    then module (was deferred). Awaiting load preserves execution order.
       await loadScript(CDN + '/bundle-classic.js', false);
       await loadScript(CDN + '/bundle-module.js', true);
     } catch (err) {
