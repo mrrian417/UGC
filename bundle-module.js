@@ -1201,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Footer
             html += '<div class="text-center pt-2 text-xs text-gray-400">' +
-            'Affiliate Go Foto Studio by Arul CG &#8212; Terima kasih sudah menggunakan!' +
+            'Affiliate Go Foto Studio by Dian &#8212; Terima kasih sudah menggunakan!' +
             '</div>' +
             '</div>';
 
@@ -1231,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let chatHistory = [];
 
         // System prompt sebagai first message
-        const systemPrompt = `Kamu adalah AI Assistant yang ramah dan helpful untuk "Affiliate Go Foto studio" by Arul CG.
+        const systemPrompt = `Kamu adalah AI Assistant yang ramah dan helpful untuk "Affiliate Go Foto studio" by Dian.
 
 Kamu adalah chatbot tanya jawab umum yang siap membantu user dengan berbagai pertanyaan dan topik. Kamu bisa:
 
@@ -14161,467 +14161,274 @@ PENTING:
     })();
 
 // ==================== UPSCALE (paid feature, ESRGAN via fal.ai) ====================
-(function() {
-    // FAL_KEY: API key dari fal.ai dashboard
-    const FAL_KEY = "33808e5d-5e98-4bb9-b3ae-a964eae1a07d:d92050667a4f58031330817634085869";
-    const FAL_MODEL = "fal-ai/esrgan";
+    (function() {
+        // FAL_KEY: API key dari fal.ai dashboard. Repo private, tapi tetap WAJIB
+        // set spending cap di fal.ai dashboard supaya damage ter-cap kalau leak.
+        const FAL_KEY = "33808e5d-5e98-4bb9-b3ae-a964eae1a07d:d92050667a4f58031330817634085869";
 
-    const uploadBox = document.getElementById('upscale-upload-box');
-    const fileInput = document.getElementById('upscale-input');
-    const placeholder = document.getElementById('upscale-placeholder');
-    const previewContainer = document.getElementById('upscale-preview-container');
-    const previewImg = document.getElementById('upscale-preview');
-    const filenameLabel = document.getElementById('upscale-filename');
-    const removeBtn = document.getElementById('upscale-remove-btn');
-    const scaleOptions = document.getElementById('upscale-scale-options');
-    const generateBtn = document.getElementById('upscale-generate-btn');
-    const emptyState = document.getElementById('upscale-empty-state');
-    const loadingDiv = document.getElementById('upscale-loading');
-    const resultDiv = document.getElementById('upscale-result');
-    const resultImg = document.getElementById('upscale-result-img');
-    const downloadBtn = document.getElementById('upscale-download-btn');
-    const previewBtn = document.getElementById('upscale-preview-btn');
-    const buyPopup = document.getElementById('upscale-buy-popup');
-    const buyPopupClose = document.getElementById('upscale-buy-popup-close');
+        const uploadBox = document.getElementById('upscale-upload-box');
+        const fileInput = document.getElementById('upscale-input');
+        const placeholder = document.getElementById('upscale-placeholder');
+        const previewContainer = document.getElementById('upscale-preview-container');
+        const previewImg = document.getElementById('upscale-preview');
+        const filenameLabel = document.getElementById('upscale-filename');
+        const removeBtn = document.getElementById('upscale-remove-btn');
+        const scaleOptions = document.getElementById('upscale-scale-options');
+        const generateBtn = document.getElementById('upscale-generate-btn');
+        const emptyState = document.getElementById('upscale-empty-state');
+        const loadingDiv = document.getElementById('upscale-loading');
+        const resultDiv = document.getElementById('upscale-result');
+        const resultImg = document.getElementById('upscale-result-img');
+        const downloadBtn = document.getElementById('upscale-download-btn');
+        const previewBtn = document.getElementById('upscale-preview-btn');
+        const buyPopup = document.getElementById('upscale-buy-popup');
+        const buyPopupClose = document.getElementById('upscale-buy-popup-close');
 
-    if (!uploadBox || !generateBtn) return;
+        if (!uploadBox || !generateBtn) return;
 
-    let sourceImageData = null;
-    let sourceFilename = '';
-    let selectedScale = 2;
-    let resultUrl = null;
-    let isProcessing = false;
-    let falClientLoaded = false;
+        let sourceImageData = null;
+        let sourceFilename = '';
+        let fileToUpscale = null; 
+        let selectedScale = 2;
+        let resultUrl = null;
 
-    // ========== LOAD FAL CLIENT DYNAMICALLY ==========
-    async function loadFalClient() {
-        if (falClientLoaded) return;
-        try {
-            // Cek apakah @fal-ai/client sudah tersedia
-            if (typeof fal !== 'undefined' && fal.config) {
-                falClientLoaded = true;
+        // --- Helper untuk mengganti alert() bawaan browser ---
+        function showSafeAlert(title, message) {
+            if (window.showUniversalModal) {
+                window.showUniversalModal(title, `<p class="text-gray-700">${message}</p>`);
+            } else {
+                console.warn(title + ": " + message); // Fallback jika tidak ada modal
+            }
+        }
+        // -----------------------------------------------------
+
+        function readAsBase64(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) { resolve(e.target.result); };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleUpload(file) {
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                showSafeAlert('Peringatan', 'Foto terlalu besar. Maksimal 10 MB.');
                 return;
             }
-
-            // Load dari CDN
-            console.log('[Upscale] Loading @fal-ai/client from CDN...');
-            const module = await import('https://esm.run/@fal-ai/client');
-            window.fal = module.fal;
-            
-            // Konfigurasi API Key
-            window.fal.config({
-                credentials: FAL_KEY
-            });
-            
-            falClientLoaded = true;
-            console.log('[Upscale] @fal-ai/client loaded successfully');
-        } catch (err) {
-            console.error('[Upscale] Failed to load @fal-ai/client:', err);
-            throw new Error('Gagal memuat library Fal.ai. Periksa koneksi internet.');
-        }
-    }
-
-    // ========== HELPER: Data URL to File ==========
-    function dataURLtoFile(dataUrl, filename) {
-        try {
-            const arr = dataUrl.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new File([u8arr], filename, { type: mime });
-        } catch (err) {
-            console.error('[Upscale] DataURL to File error:', err);
-            // Fallback: fetch image as blob
-            return fetch(dataUrl)
-                .then(res => res.blob())
-                .then(blob => new File([blob], filename, { type: blob.type }));
-        }
-    }
-
-    // ========== HELPER: Read File as Base64 ==========
-    function readAsBase64(file) {
-        return new Promise(function(resolve, reject) {
-            var reader = new FileReader();
-            reader.onload = function(e) { resolve(e.target.result); };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // ========== HELPER: Convert HEIC to JPEG ==========
-    async function convertHeicToJpeg(file) {
-        if (typeof heic2any !== 'undefined') {
             try {
-                const converted = await heic2any({ 
-                    blob: file, 
-                    toType: 'image/jpeg', 
-                    quality: 0.9 
-                });
-                return new File([converted], file.name.replace(/\.heic$/i, '.jpg'), { 
-                    type: 'image/jpeg' 
-                });
-            } catch (err) {
-                console.error('HEIC conversion failed:', err);
-                throw new Error('Gagal mengkonversi file HEIC');
-            }
-        }
-        return file;
-    }
-
-    // ========== UPLOAD HANDLER ==========
-    async function handleUpload(file) {
-        if (!file) return;
-        if (file.size > 10 * 1024 * 1024) {
-            alert('Foto terlalu besar. Maksimal 10 MB.');
-            return;
-        }
-        try {
-            let processedFile = file;
-            if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
-                if (typeof heic2any !== 'undefined') {
-                    processedFile = await convertHeicToJpeg(file);
-                }
-            }
-            sourceImageData = await readAsBase64(processedFile);
-            sourceFilename = processedFile.name || 'upscale-source.jpg';
-            previewImg.src = sourceImageData;
-            filenameLabel.textContent = sourceFilename;
-            placeholder.classList.add('hidden');
-            previewContainer.classList.remove('hidden');
-            generateBtn.disabled = false;
-        } catch (err) {
-            console.error('Upscale upload error:', err);
-            alert('Gagal memproses foto. Coba format JPG/PNG.');
-        }
-    }
-
-    // ========== UPLOAD EVENTS ==========
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files[0]) handleUpload(e.target.files[0]);
-        });
-    }
-    if (uploadBox) {
-        uploadBox.addEventListener('click', function(e) {
-            if (e.target.closest('button')) return;
-            fileInput.click();
-        });
-        // Drag & Drop
-        uploadBox.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            uploadBox.style.borderColor = '#8B5CF6';
-            uploadBox.style.background = 'rgba(139, 92, 246, 0.05)';
-        });
-        uploadBox.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            uploadBox.style.borderColor = '';
-            uploadBox.style.background = '';
-        });
-        uploadBox.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadBox.style.borderColor = '';
-            uploadBox.style.background = '';
-            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                handleUpload(e.dataTransfer.files[0]);
-            }
-        });
-    }
-    if (removeBtn) {
-        removeBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            sourceImageData = null;
-            sourceFilename = '';
-            fileInput.value = '';
-            previewContainer.classList.add('hidden');
-            placeholder.classList.remove('hidden');
-            generateBtn.disabled = true;
-            resultDiv.classList.add('hidden');
-            resultImg.src = '';
-            resultUrl = null;
-        });
-    }
-
-    // ========== SCALE SELECTION ==========
-    if (scaleOptions) {
-        scaleOptions.addEventListener('click', function(e) {
-            const btn = e.target.closest('button[data-scale]');
-            if (!btn) return;
-            Array.prototype.forEach.call(scaleOptions.querySelectorAll('button'), function(b) {
-                b.classList.remove('selected', 'border-purple-500', 'bg-purple-50');
-                b.classList.add('border-gray-200', 'bg-white');
-                var hint = b.querySelector('.text-xs');
-                if (hint) { hint.classList.remove('text-purple-600'); hint.classList.add('text-gray-500'); }
-                var num = b.querySelector('.text-2xl');
-                if (num) { num.classList.remove('text-purple-700'); num.classList.add('text-gray-700'); }
-            });
-            btn.classList.add('selected', 'border-purple-500', 'bg-purple-50');
-            btn.classList.remove('border-gray-200', 'bg-white');
-            var hint = btn.querySelector('.text-xs');
-            if (hint) { hint.classList.add('text-purple-600'); hint.classList.remove('text-gray-500'); }
-            var num = btn.querySelector('.text-2xl');
-            if (num) { num.classList.add('text-purple-700'); num.classList.remove('text-gray-700'); }
-            selectedScale = parseInt(btn.dataset.scale, 10);
-        });
-    }
-
-    // ========== BUY POPUP ==========
-    function showBuyPopup() {
-        if (buyPopup) buyPopup.classList.remove('hidden');
-    }
-    if (buyPopupClose) {
-        buyPopupClose.addEventListener('click', function() { buyPopup.classList.add('hidden'); });
-    }
-    if (buyPopup) {
-        buyPopup.addEventListener('click', function(e) {
-            if (e.target === buyPopup) buyPopup.classList.add('hidden');
-        });
-    }
-
-    // ========== QUOTA MANAGEMENT ==========
-    async function consumeQuota() {
-        const email = localStorage.getItem('affiliatego_email');
-        const token = localStorage.getItem('affiliatego_token');
-        if (!email || !token) return { ok: false, reason: 'not_logged_in' };
-        try {
-            const url = SCRIPT_URL + '?action=use_upscale'
-                + '&email=' + encodeURIComponent(email)
-                + '&token=' + encodeURIComponent(token)
-                + '&app_secret=' + encodeURIComponent(APP_SECRET)
-                + '&product=' + encodeURIComponent(PRODUCT_ID);
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data.status === 'SUKSES') return { ok: true };
-            if (data.quota_exhausted) return { ok: false, reason: 'exhausted' };
-            return { ok: false, reason: 'other', message: data.message };
-        } catch (err) {
-            console.error('Upscale quota check failed:', err);
-            return { ok: false, reason: 'network' };
-        }
-    }
-
-    async function refundQuota() {
-        const email = localStorage.getItem('affiliatego_email');
-        const token = localStorage.getItem('affiliatego_token');
-        if (!email || !token) return;
-        try {
-            const url = SCRIPT_URL + '?action=refund_upscale'
-                + '&email=' + encodeURIComponent(email)
-                + '&token=' + encodeURIComponent(token)
-                + '&app_secret=' + encodeURIComponent(APP_SECRET)
-                + '&product=' + encodeURIComponent(PRODUCT_ID);
-            await fetch(url);
-        } catch (err) {
-            console.error('Upscale refund failed:', err);
-        }
-    }
-
-    // ========== CORE: FAL.AI ESRGAN UPSCALE ==========
-    async function callFalEsrgan(imageDataUri, scale) {
-        // Load FAL client
-        await loadFalClient();
-
-        if (typeof fal === 'undefined' || !fal.subscribe) {
-            throw new Error('Fal.ai client tidak tersedia. Periksa koneksi internet.');
-        }
-
-        console.log('[Upscale] Starting ESRGAN upscale with @fal-ai/client...');
-        console.log('[Upscale] Scale:', scale);
-        console.log('[Upscale] Model:', FAL_MODEL);
-
-        try {
-            // STEP 1: Upload gambar ke fal.storage
-            console.log('[Upscale] Uploading image to fal.storage...');
-            const file = dataURLtoFile(imageDataUri, sourceFilename || 'image.png');
-            const uploadedUrl = await fal.storage.upload(file);
-            console.log('[Upscale] Uploaded URL:', uploadedUrl);
-
-            // STEP 2: Subscribe ke model ESRGAN
-            console.log('[Upscale] Subscribing to ESRGAN model...');
-            const result = await fal.subscribe(FAL_MODEL, {
-                input: {
-                    image_url: uploadedUrl,
-                    scale: scale,
-                    model: 'RealESRGAN_x4plus',
-                    output_format: 'png'
-                },
-                logs: true,
-                onQueueUpdate: (update) => {
-                    if (update.status === 'IN_PROGRESS') {
-                        console.log('[Upscale] Processing...', update.logs);
-                        // Update status di UI
-                        const loadingText = loadingDiv?.querySelector('.text-sm');
-                        if (loadingText) {
-                            loadingText.textContent = 'Memproses upscale di server Fal.ai...';
-                        }
+                let processedFile = file;
+                if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+                    if (typeof heic2any !== 'undefined') {
+                        const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+                        processedFile = new File([converted], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
                     }
                 }
-            });
-
-            console.log('[Upscale] Result received:', result);
-            
-            // STEP 3: Ambil URL hasil
-            const imageUrl = result?.data?.image?.url;
-            if (!imageUrl) {
-                // Fallback: cek field lain
-                const altUrl = result?.data?.url || result?.url;
-                if (altUrl) return altUrl;
-                throw new Error('Tidak ada image.url di response');
+                sourceImageData = await readAsBase64(processedFile);
+                sourceFilename = processedFile.name || 'upscale-source.jpg';
+                fileToUpscale = processedFile; 
+                previewImg.src = sourceImageData;
+                filenameLabel.textContent = sourceFilename;
+                placeholder.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+                generateBtn.disabled = false;
+            } catch (err) {
+                console.error('Upscale upload error:', err);
+                showSafeAlert('Error', 'Gagal memproses foto. Coba format JPG/PNG.');
             }
-
-            // Log image info
-            if (result.data.image) {
-                console.log('[Upscale] Image info:', {
-                    width: result.data.image.width,
-                    height: result.data.image.height,
-                    size: result.data.image.file_size,
-                    format: result.data.image.content_type
-                });
-            }
-
-            return imageUrl;
-
-        } catch (error) {
-            console.error('[Upscale] Fal.ai error:', error);
-            throw error;
         }
-    }
 
-    // ========== GENERATE BUTTON ==========
-    if (generateBtn) {
-        generateBtn.addEventListener('click', async function() {
-            if (!sourceImageData || isProcessing) return;
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files[0]) handleUpload(e.target.files[0]);
+            });
+        }
+        if (uploadBox) {
+            uploadBox.addEventListener('click', function(e) {
+                if (e.target.closest('button')) return;
+                fileInput.click();
+            });
+        }
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                sourceImageData = null;
+                sourceFilename = '';
+                fileToUpscale = null;
+                fileInput.value = '';
+                previewContainer.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                generateBtn.disabled = true;
+            });
+        }
 
-            isProcessing = true;
-            generateBtn.disabled = true;
-            emptyState.classList.add('hidden');
-            resultDiv.classList.add('hidden');
-            loadingDiv.classList.remove('hidden');
-            
-            // Update loading text
-            const loadingText = loadingDiv.querySelector('.text-sm');
-            if (loadingText) loadingText.textContent = 'Mempersiapkan...';
+        if (scaleOptions) {
+            scaleOptions.addEventListener('click', function(e) {
+                const btn = e.target.closest('button[data-scale]');
+                if (!btn) return;
+                Array.prototype.forEach.call(scaleOptions.querySelectorAll('button'), function(b) {
+                    b.classList.remove('selected', 'border-purple-500', 'bg-purple-50');
+                    b.classList.add('border-gray-200', 'bg-white');
+                    var hint = b.querySelector('.text-xs');
+                    if (hint) { hint.classList.remove('text-purple-600'); hint.classList.add('text-gray-500'); }
+                    var num = b.querySelector('.text-2xl');
+                    if (num) { num.classList.remove('text-purple-700'); num.classList.add('text-gray-700'); }
+                });
+                btn.classList.add('selected', 'border-purple-500', 'bg-purple-50');
+                btn.classList.remove('border-gray-200', 'bg-white');
+                var hint = btn.querySelector('.text-xs');
+                if (hint) { hint.classList.add('text-purple-600'); hint.classList.remove('text-gray-500'); }
+                var num = btn.querySelector('.text-2xl');
+                if (num) { num.classList.add('text-purple-700'); num.classList.remove('text-gray-700'); }
+                selectedScale = parseInt(btn.dataset.scale, 10);
+            });
+        }
 
-            // ===== CHECK QUOTA =====
-            const consume = await consumeQuota();
-            if (!consume.ok) {
-                loadingDiv.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                generateBtn.disabled = false;
-                isProcessing = false;
-                if (consume.reason === 'exhausted') {
-                    showBuyPopup();
-                } else if (consume.reason === 'not_logged_in') {
-                    alert('Silakan login terlebih dahulu.');
-                } else if (consume.reason === 'network') {
-                    alert('Gagal connect ke server. Cek koneksi internet.');
-                } else {
-                    alert(consume.message || 'Gagal menggunakan kuota.');
-                }
-                return;
-            }
+        function showBuyPopup() {
+            if (buyPopup) buyPopup.classList.remove('hidden');
+        }
+        if (buyPopupClose) {
+            buyPopupClose.addEventListener('click', function() { buyPopup.classList.add('hidden'); });
+        }
+        if (buyPopup) {
+            buyPopup.addEventListener('click', function(e) {
+                if (e.target === buyPopup) buyPopup.classList.add('hidden');
+            });
+        }
 
+        async function consumeQuota() {
+            const email = localStorage.getItem('affiliatego_email');
+            const token = localStorage.getItem('affiliatego_token');
+            if (!email || !token) return { ok: false, reason: 'not_logged_in' };
             try {
-                // ===== CALL FAL.AI ESRGAN =====
-                if (loadingText) loadingText.textContent = 'Mengupload gambar ke Fal.ai...';
-                
-                const upscaledUrl = await callFalEsrgan(sourceImageData, selectedScale);
-                resultUrl = upscaledUrl;
-                resultImg.src = upscaledUrl;
-                
-                // Show result
-                loadingDiv.classList.add('hidden');
-                resultDiv.classList.remove('hidden');
-                
-                if (loadingText) loadingText.textContent = 'Selesai!';
-
+                const url = SCRIPT_URL + '?action=use_upscale'
+                    + '&email=' + encodeURIComponent(email)
+                    + '&token=' + encodeURIComponent(token)
+                    + '&app_secret=' + encodeURIComponent(APP_SECRET)
+                    + '&product=' + encodeURIComponent(PRODUCT_ID);
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 'SUKSES') return { ok: true };
+                if (data.quota_exhausted) return { ok: false, reason: 'exhausted' };
+                return { ok: false, reason: 'other', message: data.message };
             } catch (err) {
-                console.error('Upscale error:', err);
-                await refundQuota();
-                loadingDiv.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                
-                let errorMsg = err.message || 'Terjadi kesalahan';
-                // Sembunyikan detail teknis dari user
-                if (errorMsg.includes('FAL_KEY') || errorMsg.includes('credentials')) {
-                    errorMsg = 'API key tidak valid. Silakan hubungi admin.';
-                } else if (errorMsg.includes('quota') || errorMsg.includes('rate limit')) {
-                    errorMsg = 'Kuota habis atau rate limit tercapai. Silakan coba lagi nanti.';
-                } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
-                    errorMsg = 'Gagal connect ke server Fal.ai. Periksa koneksi internet.';
-                } else if (errorMsg.includes('storage') || errorMsg.includes('upload')) {
-                    errorMsg = 'Gagal upload gambar ke Fal.ai. Coba lagi.';
-                }
-                alert('Gagal upscale: ' + errorMsg + '\n\nKuota dikembalikan, coba lagi.');
-            } finally {
-                generateBtn.disabled = false;
-                isProcessing = false;
+                console.error('Upscale quota check failed:', err);
+                return { ok: false, reason: 'network' };
             }
-        });
-    }
+        }
 
-    // ========== DOWNLOAD BUTTON ==========
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', async function() {
-            if (!resultUrl) return;
-            const filename = 'upscale-' + selectedScale + 'x-' + Date.now() + '.png';
-            
+        async function refundQuota() {
+            const email = localStorage.getItem('affiliatego_email');
+            const token = localStorage.getItem('affiliatego_token');
+            if (!email || !token) return;
             try {
-                // Fetch image dari URL, lalu download
-                const response = await fetch(resultUrl);
-                if (!response.ok) throw new Error('Failed to fetch image');
-                
-                const blob = await response.blob();
-                
-                // Gunakan downloadDataURINew jika tersedia
-                if (window.downloadDataURINew) {
-                    const reader = new FileReader();
-                    reader.onload = function() {
-                        window.downloadDataURINew(reader.result, filename);
-                    };
-                    reader.readAsDataURL(blob);
-                } else if (window.downloadImage) {
-                    await window.downloadImage(resultUrl, filename);
-                } else {
-                    // Fallback: download via anchor
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    setTimeout(() => URL.revokeObjectURL(url), 5000);
-                }
+                const url = SCRIPT_URL + '?action=refund_upscale'
+                    + '&email=' + encodeURIComponent(email)
+                    + '&token=' + encodeURIComponent(token)
+                    + '&app_secret=' + encodeURIComponent(APP_SECRET)
+                    + '&product=' + encodeURIComponent(PRODUCT_ID);
+                await fetch(url);
             } catch (err) {
-                console.error('Download error:', err);
-                // Fallback: buka di tab baru
-                window.open(resultUrl, '_blank');
+                console.error('Upscale refund failed:', err);
             }
-        });
-    }
+        }
 
-    // ========== PREVIEW BUTTON ==========
-    if (previewBtn) {
-        previewBtn.addEventListener('click', function() {
-            if (!resultUrl) return;
-            if (window.showPreviewModal) {
-                window.showPreviewModal(resultUrl);
-            } else {
-                window.open(resultUrl, '_blank');
-            }
-        });
-    }
+        if (generateBtn) {
+            generateBtn.addEventListener('click', async function() {
+                if (!fileToUpscale) return;
 
-    // ========== INIT ==========
-    console.log('[Upscale] Module initialized');
-    console.log('[Upscale] FAL Model:', FAL_MODEL);
-    console.log('[Upscale] API Key set:', FAL_KEY ? 'Yes' : 'No');
+                generateBtn.disabled = true;
+                emptyState.classList.add('hidden');
+                resultDiv.classList.add('hidden');
+                loadingDiv.classList.remove('hidden');
 
-})();
+                // 1. Cek Kuota
+                const consume = await consumeQuota();
+                if (!consume.ok) {
+                    loadingDiv.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    generateBtn.disabled = false;
+                    
+                    if (consume.reason === 'exhausted') {
+                        showBuyPopup();
+                    } else if (consume.reason === 'not_logged_in') {
+                        showSafeAlert('Akses Ditolak', 'Silakan login terlebih dahulu.');
+                    } else if (consume.reason === 'network') {
+                        showSafeAlert('Error Jaringan', 'Gagal connect ke server. Cek koneksi internet.');
+                    } else {
+                        showSafeAlert('Gagal', consume.message || 'Gagal menggunakan kuota.');
+                    }
+                    return;
+                }
+
+                try {
+                    // 2. Load SDK Fal via Dynamic Import
+                    const { fal } = await import("https://esm.run/@fal-ai/client");
+                    
+                    fal.config({
+                        credentials: FAL_KEY
+                    });
+
+                    // 3. Upload file mentah ke storage Fal
+                    const uploadedUrl = await fal.storage.upload(fileToUpscale);
+
+                    // 4. Proses Upscale
+                    const result = await fal.subscribe("fal-ai/esrgan", {
+                        input: {
+                            image_url: uploadedUrl,
+                            scale: selectedScale,
+                            model: "RealESRGAN_x4plus",
+                            output_format: "jpeg"
+                        }
+                    });
+
+                    // 5. Tampilkan Hasil
+                    if (result.data && result.data.image && result.data.image.url) {
+                        const upscaledUrl = result.data.image.url;
+                        resultUrl = upscaledUrl;
+                        resultImg.src = upscaledUrl;
+                        loadingDiv.classList.add('hidden');
+                        resultDiv.classList.remove('hidden');
+                    } else {
+                        throw new Error('Hasil tidak dikembalikan oleh server Fal.');
+                    }
+
+                } catch (err) {
+                    console.error('Upscale error:', err);
+                    await refundQuota(); // Kembalikan kuota jika gagal
+                    loadingDiv.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    showSafeAlert('Gagal Upscale', err.message + '<br><br><b>Info:</b> Kuota Anda telah dikembalikan, silakan coba lagi.');
+                } finally {
+                    generateBtn.disabled = false;
+                }
+            });
+        }
+
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', async function() {
+                if (!resultUrl) return;
+                const filename = 'upscale-' + selectedScale + 'x-' + Date.now() + '.jpg';
+                try {
+                    if (window.downloadDataURINew) await window.downloadDataURINew(resultUrl, filename);
+                    else if (window.downloadImage) await window.downloadImage(resultUrl, filename);
+                    else window.open(resultUrl, '_blank');
+                } catch (err) {
+                    console.error('Upscale download error:', err);
+                    window.open(resultUrl, '_blank');
+                }
+            });
+        }
+
+        if (previewBtn) {
+            previewBtn.addEventListener('click', function() {
+                if (!resultUrl) return;
+                if (window.showPreviewModal) window.showPreviewModal(resultUrl);
+                else window.open(resultUrl, '_blank');
+            });
+        }
+    })();
 
     // ==================== SKETSA KE KATALOG PRODUK ====================
     (function() {
